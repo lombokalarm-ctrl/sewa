@@ -16,6 +16,9 @@ interface AppState {
   extendTransaction: (id: string, additionalDuration: number) => void;
   addPayment: (id: string, amount: number, method: string) => void;
   updateInventoryStock: (id: string, quantityChange: number) => void;
+  addInventoryItem: (item: Omit<InventoryItem, 'id' | 'availableStock'> & { availableStock?: number }) => boolean;
+  updateInventoryItem: (id: string, updates: Partial<Omit<InventoryItem, 'id'>>) => boolean;
+  deleteInventoryItem: (id: string) => boolean;
   updateCompanySettings: (settings: CompanySettings) => void;
   login: (username: string, password: string) => boolean;
   logout: () => void;
@@ -229,6 +232,89 @@ export const useStore = create<AppState>()(
             item.id === id ? { ...item, totalStock: item.totalStock + quantityChange, availableStock: item.availableStock + quantityChange } : item
           )
         }));
+      },
+      addInventoryItem: (itemData) => {
+        const name = itemData.name.trim();
+        if (!name) return false;
+
+        const exists = get().inventory.some(i => i.name.toLowerCase() === name.toLowerCase());
+        if (exists) return false;
+
+        const totalStock = Math.max(0, Number(itemData.totalStock) || 0);
+        const dailyRate = Math.max(0, Number(itemData.dailyRate) || 0);
+        const monthlyRate = Math.max(0, Number(itemData.monthlyRate) || 0);
+        const availableStock = itemData.availableStock === undefined ? totalStock : Math.max(0, Math.min(totalStock, Number(itemData.availableStock) || 0));
+
+        set((state) => ({
+          inventory: [
+            ...state.inventory,
+            {
+              id: uuidv4(),
+              name,
+              totalStock,
+              availableStock,
+              dailyRate,
+              monthlyRate,
+            }
+          ]
+        }));
+
+        return true;
+      },
+      updateInventoryItem: (id, updates) => {
+        const inventory = get().inventory;
+        const current = inventory.find(i => i.id === id);
+        if (!current) return false;
+
+        const hasTx = get().transactions.some(tx => tx.items.some(item => item.name === current.name));
+        if (updates.name && updates.name.trim() !== current.name && hasTx) return false;
+
+        const nextName = updates.name === undefined ? current.name : updates.name.trim();
+        if (!nextName) return false;
+
+        const duplicateName = inventory.some(i => i.id !== id && i.name.toLowerCase() === nextName.toLowerCase());
+        if (duplicateName) return false;
+
+        const usedStock = current.totalStock - current.availableStock;
+        const nextTotalStock = updates.totalStock === undefined ? current.totalStock : Math.max(0, Number(updates.totalStock) || 0);
+        if (nextTotalStock < usedStock) return false;
+
+        const nextDailyRate = updates.dailyRate === undefined ? current.dailyRate : Math.max(0, Number(updates.dailyRate) || 0);
+        const nextMonthlyRate = updates.monthlyRate === undefined ? current.monthlyRate : Math.max(0, Number(updates.monthlyRate) || 0);
+
+        let nextAvailableStock = current.availableStock;
+        if (updates.availableStock !== undefined) {
+          nextAvailableStock = Math.max(0, Math.min(nextTotalStock, Number(updates.availableStock) || 0));
+        } else if (updates.totalStock !== undefined) {
+          nextAvailableStock = Math.max(0, nextTotalStock - usedStock);
+        }
+
+        set((state) => ({
+          inventory: state.inventory.map(i => i.id === id ? {
+            ...i,
+            name: nextName,
+            totalStock: nextTotalStock,
+            availableStock: nextAvailableStock,
+            dailyRate: nextDailyRate,
+            monthlyRate: nextMonthlyRate,
+          } : i)
+        }));
+
+        return true;
+      },
+      deleteInventoryItem: (id) => {
+        const inventory = get().inventory;
+        const current = inventory.find(i => i.id === id);
+        if (!current) return false;
+
+        const hasTx = get().transactions.some(tx => tx.items.some(item => item.name === current.name));
+        if (hasTx) return false;
+
+        set((state) => ({
+          inventory: state.inventory.filter(i => i.id !== id)
+        }));
+
+        return true;
       },
       updateCompanySettings: (settings) => {
         set({ companySettings: settings });
