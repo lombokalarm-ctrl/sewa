@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
-import { Lock, KeyRound, AlertCircle } from 'lucide-react';
+import { Lock, KeyRound, User, AlertCircle } from 'lucide-react';
 
 export default function Login() {
-  const [passcode, setPasscode] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
   const login = useStore(state => state.login);
   const companyName = useStore(state => state.companySettings.name);
@@ -12,11 +13,11 @@ export default function Login() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(passcode)) {
+    if (login(username, password)) {
       navigate('/');
     } else {
       setError(true);
-      setPasscode('');
+      setPassword('');
       setTimeout(() => setError(false), 3000);
     }
   };
@@ -29,25 +30,42 @@ export default function Login() {
             <Lock className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold mb-2">{companyName}</h1>
-          <p className="text-blue-100">Silakan masukkan PIN untuk masuk ke aplikasi</p>
+          <p className="text-blue-100">Silakan login untuk masuk ke aplikasi</p>
         </div>
         
         <div className="p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">PIN Keamanan</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="admin"
+                  required
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <KeyRound className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   type="password"
-                  value={passcode}
-                  onChange={(e) => setPasscode(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg tracking-widest text-center"
-                  placeholder="••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="••••••••"
                   required
-                  autoFocus
                 />
               </div>
             </div>
@@ -55,7 +73,7 @@ export default function Login() {
             {error && (
               <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg text-sm font-medium animate-shake">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                <span>PIN yang Anda masukkan salah. Silakan coba lagi.</span>
+                <span>Username atau password salah.</span>
               </div>
             )}
 

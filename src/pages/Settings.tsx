@@ -7,14 +7,14 @@ import { CompanySettings } from '../types';
 export default function Settings() {
   const storeSettings = useStore(state => state.companySettings);
   const updateCompanySettings = useStore(state => state.updateCompanySettings);
-  const currentPasscode = useStore(state => state.passcode);
-  const updatePasscode = useStore(state => state.updatePasscode);
+  const updateCredentials = useStore(state => state.updateCredentials);
   const logout = useStore(state => state.logout);
   const navigate = useNavigate();
   
   const [settings, setSettings] = useState<CompanySettings>(storeSettings);
   const [isSaved, setIsSaved] = useState(false);
-  const [newPasscode, setNewPasscode] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [passcodeSaved, setPasscodeSaved] = useState(false);
 
   useEffect(() => {
@@ -35,12 +35,17 @@ export default function Settings() {
 
   const handlePasscodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPasscode.length < 4) {
-      alert('PIN minimal 4 karakter');
+    if (newUsername.length < 3) {
+      alert('Username minimal 3 karakter');
       return;
     }
-    updatePasscode(newPasscode);
-    setNewPasscode('');
+    if (newPassword.length < 6) {
+      alert('Password minimal 6 karakter');
+      return;
+    }
+    updateCredentials(newUsername, newPassword);
+    setNewUsername('');
+    setNewPassword('');
     setPasscodeSaved(true);
     setTimeout(() => setPasscodeSaved(false), 3000);
   };
@@ -204,26 +209,33 @@ export default function Settings() {
         </h2>
         <form onSubmit={handlePasscodeSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ganti PIN Keamanan</label>
-            <p className="text-xs text-gray-500 mb-3">PIN ini digunakan untuk masuk ke aplikasi. PIN default adalah <strong>123456</strong>.</p>
-            <div className="flex gap-3">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Ganti Kredensial Login</label>
+            <p className="text-xs text-gray-500 mb-3">Default Username: <strong>admin</strong> | Default Password: <strong>password123</strong>.</p>
+            <div className="flex flex-col md:flex-row gap-3">
               <input 
                 type="text" 
-                value={newPasscode}
-                onChange={(e) => setNewPasscode(e.target.value)}
-                placeholder="Masukkan PIN baru"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                placeholder="Username baru"
+                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <input 
+                type="text" 
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Password baru"
                 className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               <button 
                 type="submit"
                 className="bg-gray-800 text-white px-4 py-3 rounded-lg font-medium hover:bg-gray-900 transition-colors whitespace-nowrap"
               >
-                Ubah PIN
+                Ubah Login
               </button>
             </div>
             {passcodeSaved && (
               <p className="text-green-600 text-sm mt-2 font-medium flex items-center gap-1">
-                <CheckCircle2 className="w-4 h-4" /> PIN berhasil diubah!
+                <CheckCircle2 className="w-4 h-4" /> Kredensial berhasil diubah!
               </p>
             )}
           </div>

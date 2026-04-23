@@ -8,7 +8,8 @@ interface AppState {
   transactions: Transaction[];
   inventory: InventoryItem[];
   companySettings: CompanySettings;
-  passcode: string;
+  adminUsername: string;
+  adminPassword: string;
   isAuthenticated: boolean;
   addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt' | 'status' | 'extensions' | 'endDate' | 'totalCost' | 'paymentStatus' | 'amountPaid' | 'payments'> & { initialPayment?: number; initialPaymentMethod?: string }) => string;
   completeTransaction: (id: string) => void;
@@ -16,9 +17,9 @@ interface AppState {
   addPayment: (id: string, amount: number, method: string) => void;
   updateInventoryStock: (id: string, quantityChange: number) => void;
   updateCompanySettings: (settings: CompanySettings) => void;
-  login: (code: string) => boolean;
+  login: (username: string, password: string) => boolean;
   logout: () => void;
-  updatePasscode: (code: string) => void;
+  updateCredentials: (username: string, password: string) => void;
 }
 
 const initialInventory: InventoryItem[] = [
@@ -48,15 +49,16 @@ export const useStore = create<AppState>()(
       transactions: [],
       inventory: initialInventory,
       companySettings: defaultCompanySettings,
-      passcode: '123456',
+      adminUsername: 'admin',
+      adminPassword: 'password123',
       isAuthenticated: false,
-      login: (code) => {
-        const isValid = get().passcode === code;
+      login: (username, password) => {
+        const isValid = get().adminUsername === username && get().adminPassword === password;
         if (isValid) set({ isAuthenticated: true });
         return isValid;
       },
       logout: () => set({ isAuthenticated: false }),
-      updatePasscode: (code) => set({ passcode: code }),
+      updateCredentials: (username, password) => set({ adminUsername: username, adminPassword: password }),
       addTransaction: (txData) => {
         const id = uuidv4();
         const createdAt = new Date().toISOString();
