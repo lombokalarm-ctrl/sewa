@@ -84,12 +84,6 @@ export default function Login() {
               Masuk Aplikasi
             </button>
           </form>
-          
-          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-            <p className="text-xs text-gray-500">
-              Secured by Trae PWA
-            </p>
-          </div>
         </div>
       </div>
     </div>
