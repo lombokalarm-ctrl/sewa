@@ -56,12 +56,12 @@ export const useStore = create<AppState>()(
       adminPassword: 'password123',
       isAuthenticated: false,
       login: (username, password) => {
-        const isValid = get().adminUsername === username && get().adminPassword === password;
+        const isValid = get().adminUsername.trim() === username.trim() && get().adminPassword === password;
         if (isValid) set({ isAuthenticated: true });
         return isValid;
       },
       logout: () => set({ isAuthenticated: false }),
-      updateCredentials: (username, password) => set({ adminUsername: username, adminPassword: password }),
+      updateCredentials: (username, password) => set({ adminUsername: username.trim(), adminPassword: password }),
       addTransaction: (txData) => {
         const id = uuidv4();
         const createdAt = new Date().toISOString();
