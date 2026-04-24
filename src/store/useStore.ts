@@ -56,7 +56,9 @@ export const useStore = create<AppState>()(
       adminPassword: 'password123',
       isAuthenticated: false,
       login: (username, password) => {
-        const isValid = get().adminUsername.trim() === username.trim() && get().adminPassword === password;
+        const storedUsername = get().adminUsername || 'admin';
+        const storedPassword = get().adminPassword || 'password123';
+        const isValid = storedUsername.trim() === username.trim() && storedPassword === password;
         if (isValid) set({ isAuthenticated: true });
         return isValid;
       },
